@@ -778,7 +778,12 @@ describe('array module', () => {
     ]
     test('pickBy should return all items that match the predicate', () => {
       const result = _.pickBy(exampleData, ['group'])
-      assert.deepEqual(result, [{ group: 'X' }, { group: 'X' }])
+      assert.deepEqual(result, [
+        { group: 'X' },
+        { group: 'X' },
+        { group: 'Y' },
+        { group: 'Y' }
+      ])
     })
   })
 })
