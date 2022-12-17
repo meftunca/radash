@@ -209,5 +209,5 @@ describe('string module', () => {
       assert.equal(_.lowerCase('HELLO WORLD!'), 'hello world!')
       assert.equal(_.lowerCase('HELLO WORLD!'), 'hello world!')
     })
-  }
+  })
 })
