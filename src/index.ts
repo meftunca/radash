@@ -52,7 +52,18 @@ export {
   proxied,
   throttle
 } from './curry'
-export { toFloat, toInt } from './number'
+export {
+  toBinary,
+  toFixed,
+  toFloat,
+  toHex,
+  toInt,
+  toOctal,
+  toPrecision,
+  toRadix,
+  toRandom,
+  toRandomFloat
+} from './number'
 export {
   assign,
   clone,
@@ -68,7 +79,7 @@ export {
   shake,
   upperize
 } from './object'
-export { draw, random, shuffle, uid } from './random'
+export { draw, random, shuffle, toRandomColor, toUUID, uid } from './random'
 export { series } from './series'
 export {
   camel,

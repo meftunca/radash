@@ -82,6 +82,142 @@ var radash = (function (exports) {
     return true;
   };
 
+  const shake = (obj, filter = (x) => x === void 0) => {
+    if (!obj)
+      return {};
+    const keys = Object.keys(obj);
+    return keys.reduce((acc, key) => {
+      if (filter(obj[key])) {
+        return acc;
+      } else
+        return { ...acc, [key]: obj[key] };
+    }, {});
+  };
+  const mapKeys = (obj, mapFunc) => {
+    const keys = Object.keys(obj);
+    return keys.reduce(
+      (acc, key) => ({
+        ...acc,
+        [mapFunc(key, obj[key])]: obj[key]
+      }),
+      {}
+    );
+  };
+  const mapValues = (obj, mapFunc) => {
+    const keys = Object.keys(obj);
+    return keys.reduce(
+      (acc, key) => ({
+        ...acc,
+        [key]: mapFunc(obj[key], key)
+      }),
+      {}
+    );
+  };
+  const mapEntries = (obj, toEntry) => {
+    if (!obj)
+      return {};
+    return Object.entries(obj).reduce((acc, [key, value]) => {
+      const [newKey, newValue] = toEntry(key, value);
+      return {
+        ...acc,
+        [newKey]: newValue
+      };
+    }, {});
+  };
+  const invert = (obj) => {
+    if (!obj)
+      return {};
+    const keys = Object.keys(obj);
+    return keys.reduce(
+      (acc, key) => ({
+        ...acc,
+        [obj[key]]: key
+      }),
+      {}
+    );
+  };
+  const lowerize = (obj) => mapKeys(obj, (k) => k.toLowerCase());
+  const upperize = (obj) => mapKeys(obj, (k) => k.toUpperCase());
+  const clone = (obj) => {
+    if (isPrimitive(obj)) {
+      return obj;
+    }
+    if (typeof obj === "function") {
+      return obj.bind({});
+    }
+    const newObj = new obj.constructor();
+    Object.getOwnPropertyNames(obj).forEach((prop) => {
+      newObj[prop] = obj[prop];
+    });
+    return newObj;
+  };
+  const listify = (obj, toItem) => {
+    if (!obj)
+      return [];
+    const entries = Object.entries(obj);
+    if (entries.length === 0)
+      return [];
+    return entries.reduce((acc, entry) => {
+      return [...acc, toItem(entry[0], entry[1])];
+    }, []);
+  };
+  const pick = (obj, keys) => {
+    if (!obj)
+      return {};
+    return keys.reduce((acc, key) => {
+      if (obj.hasOwnProperty(key))
+        acc[key] = obj[key];
+      return acc;
+    }, {});
+  };
+  const omit = (obj, keys) => {
+    if (!obj)
+      return {};
+    if (!keys || keys.length === 0)
+      return obj;
+    return keys.reduce(
+      (acc, key) => {
+        delete acc[key];
+        return acc;
+      },
+      { ...obj }
+    );
+  };
+  const get = (value, funcOrPath, defaultValue = null) => {
+    const segments = funcOrPath.split(/[\.\[\]]/g);
+    let current = value;
+    for (const key of segments) {
+      if (current === null)
+        return defaultValue;
+      if (current === void 0)
+        return defaultValue;
+      if (key.trim() === "")
+        continue;
+      current = current[key];
+    }
+    if (current === void 0)
+      return defaultValue;
+    return current;
+  };
+  const assign = (a, b) => {
+    if (!a && !b)
+      return {};
+    if (!a)
+      return b;
+    if (!b)
+      return a;
+    return Object.entries(a).reduce((acc, [key, value]) => {
+      return {
+        ...acc,
+        [key]: (() => {
+          if (isObject(value))
+            return assign(value, b[key]);
+          return b[key];
+        })()
+      };
+    }, {});
+  };
+
   const group = (array, getGroupId) => {
     return array.reduce((acc, item) => {
       const groupId = getGroupId(item);
@@ -337,6 +473,13 @@ var radash = (function (exports) {
       return arr;
     return [...arr.slice(-shiftNumber, arr.length), ...arr.slice(0, -shiftNumber)];
   }
+  const pickBy = (collection, keys) => {
+    const newResult = [];
+    collection.forEach((item) => {
+      newResult.push(pick(item, keys));
+    });
+    return newResult;
+  };
 
   const reduce = async (array, asyncReducer, initValue) => {
     const initProvided = initValue !== void 0;
@@ -554,149 +697,37 @@ var radash = (function (exports) {
     const result = parseFloat(value);
     return isNaN(result) ? def : result;
   };
-  const toInt = (value, defaultValue) => {
+  const toInt = (value, defaultValue, radix) => {
     const def = defaultValue === void 0 ? 0 : defaultValue;
     if (value === null || value === void 0) {
       return def;
     }
-    const result = parseInt(value);
+    const result = parseInt(value, radix || 10);
     return isNaN(result) ? def : result;
   };
-
-  const shake = (obj, filter = (x) => x === void 0) => {
-    if (!obj)
-      return {};
-    const keys = Object.keys(obj);
-    return keys.reduce((acc, key) => {
-      if (filter(obj[key])) {
-        return acc;
-      } else
-        return { ...acc, [key]: obj[key] };
-    }, {});
+  const toRadix = (value, radix) => {
+    return value.toString(radix);
   };
-  const mapKeys = (obj, mapFunc) => {
-    const keys = Object.keys(obj);
-    return keys.reduce(
-      (acc, key) => ({
-        ...acc,
-        [mapFunc(key, obj[key])]: obj[key]
-      }),
-      {}
-    );
+  const toHex = (value) => {
+    return toRadix(value, 16);
   };
-  const mapValues = (obj, mapFunc) => {
-    const keys = Object.keys(obj);
-    return keys.reduce(
-      (acc, key) => ({
-        ...acc,
-        [key]: mapFunc(obj[key], key)
-      }),
-      {}
-    );
+  const toBinary = (value) => {
+    return toRadix(value, 2);
   };
-  const mapEntries = (obj, toEntry) => {
-    if (!obj)
-      return {};
-    return Object.entries(obj).reduce((acc, [key, value]) => {
-      const [newKey, newValue] = toEntry(key, value);
-      return {
-        ...acc,
-        [newKey]: newValue
-      };
-    }, {});
+  const toOctal = (value) => {
+    return toRadix(value, 8);
   };
-  const invert = (obj) => {
-    if (!obj)
-      return {};
-    const keys = Object.keys(obj);
-    return keys.reduce(
-      (acc, key) => ({
-        ...acc,
-        [obj[key]]: key
-      }),
-      {}
-    );
+  const toFixed = (value, digits, ratio) => {
+    return !!ratio && value % 0.1 < ratio ? value.toFixed(0) : value.toFixed(digits);
   };
-  const lowerize = (obj) => mapKeys(obj, (k) => k.toLowerCase());
-  const upperize = (obj) => mapKeys(obj, (k) => k.toUpperCase());
-  const clone = (obj) => {
-    if (isPrimitive(obj)) {
-      return obj;
-    }
-    if (typeof obj === "function") {
-      return obj.bind({});
-    }
-    const newObj = new obj.constructor();
-    Object.getOwnPropertyNames(obj).forEach((prop) => {
-      newObj[prop] = obj[prop];
-    });
-    return newObj;
+  const toPrecision = (value, precision) => {
+    return value.toPrecision(precision);
   };
-  const listify = (obj, toItem) => {
-    if (!obj)
-      return [];
-    const entries = Object.entries(obj);
-    if (entries.length === 0)
-      return [];
-    return entries.reduce((acc, entry) => {
-      return [...acc, toItem(entry[0], entry[1])];
-    }, []);
+  const toRandom = (min, max) => {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
   };
-  const pick = (obj, keys) => {
-    if (!obj)
-      return {};
-    return keys.reduce((acc, key) => {
-      if (obj.hasOwnProperty(key))
-        acc[key] = obj[key];
-      return acc;
-    }, {});
-  };
-  const omit = (obj, keys) => {
-    if (!obj)
-      return {};
-    if (!keys || keys.length === 0)
-      return obj;
-    return keys.reduce(
-      (acc, key) => {
-        delete acc[key];
-        return acc;
-      },
-      { ...obj }
-    );
-  };
-  const get = (value, funcOrPath, defaultValue = null) => {
-    const segments = funcOrPath.split(/[\.\[\]]/g);
-    let current = value;
-    for (const key of segments) {
-      if (current === null)
-        return defaultValue;
-      if (current === void 0)
-        return defaultValue;
-      if (key.trim() === "")
-        continue;
-      current = current[key];
-    }
-    if (current === void 0)
-      return defaultValue;
-    return current;
-  };
-  const assign = (a, b) => {
-    if (!a && !b)
-      return {};
-    if (!a)
-      return b;
-    if (!b)
-      return a;
-    return Object.entries(a).reduce((acc, [key, value]) => {
-      return {
-        ...acc,
-        [key]: (() => {
-          if (isObject(value))
-            return assign(value, b[key]);
-          return b[key];
-        })()
-      };
-    }, {});
+  const toRandomFloat = (min, max) => {
+    return Math.random() * (max - min) + min;
   };
 
   const random = (min, max) => {
@@ -722,6 +753,16 @@ var radash = (function (exports) {
       },
       ""
     );
+  };
+  const toRandomColor = () => {
+    return `#${Math.floor(Math.random() * 16777215).toString(16)}`;
+  };
+  const toUUID = () => {
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+      const r = Math.random() * 16 | 0;
+      const v = c === "x" ? r : r & 3 | 8;
+      return v.toString(16);
+    });
   };
 
   const series = (items, toKey = (item) => `${item}`) => {
@@ -835,6 +876,16 @@ var radash = (function (exports) {
     const regex = new RegExp(`^[${charsToTrim}]+|[${charsToTrim}]+$`, "g");
     return str.replace(regex, "");
   };
+  const upperCase = (str) => {
+    if (typeof str !== "string")
+      return "";
+    return str.toUpperCase();
+  };
+  const lowerCase = (str) => {
+    if (typeof str !== "string")
+      return "";
+    return str.toLowerCase();
+  };
 
   exports.alphabetical = alphabetical;
   exports.assign = assign;
@@ -875,6 +926,7 @@ var radash = (function (exports) {
   exports.last = last;
   exports.list = list;
   exports.listify = listify;
+  exports.lowerCase = lowerCase;
   exports.lowerize = lowerize;
   exports.map = map;
   exports.mapEntries = mapEntries;
@@ -891,6 +943,7 @@ var radash = (function (exports) {
   exports.partob = partob;
   exports.pascal = pascal;
   exports.pick = pick;
+  exports.pickBy = pickBy;
   exports.proxied = proxied;
   exports.random = random;
   exports.range = range;
@@ -911,14 +964,25 @@ var radash = (function (exports) {
   exports.template = template;
   exports.throttle = throttle;
   exports.title = title;
+  exports.toBinary = toBinary;
+  exports.toFixed = toFixed;
   exports.toFloat = toFloat;
+  exports.toHex = toHex;
   exports.toInt = toInt;
+  exports.toOctal = toOctal;
+  exports.toPrecision = toPrecision;
+  exports.toRadix = toRadix;
+  exports.toRandom = toRandom;
+  exports.toRandomColor = toRandomColor;
+  exports.toRandomFloat = toRandomFloat;
+  exports.toUUID = toUUID;
   exports.toggle = toggle;
   exports.trim = trim;
   exports.try = tryit;
   exports.tryit = tryit;
   exports.uid = uid;
   exports.unique = unique;
+  exports.upperCase = upperCase;
   exports.upperize = upperize;
   exports.zip = zip;
   exports.zipToObject = zipToObject;

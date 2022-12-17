@@ -405,15 +405,16 @@ export const merge = <T>(
   others: readonly T[],
   matcher: (item: T) => any
 ) => {
-  if (!others && !root) return []
-  if (!others) return root
-  if (!root) return []
+  if (Array.isArray(root) && Array.isArray(others) && !!matcher) {
+    return root.reduce((acc, r) => {
+      const matched = others.find(o => matcher(r) === matcher(o))
+      if (matched) return [...acc, matched]
+      else return [...acc, r]
+    }, [] as T[])
+  }
+  if (!Array.isArray(root)) return []
+  if (!Array.isArray(others)) return root
   if (!matcher) return root
-  return root.reduce((acc, r) => {
-    const matched = others.find(o => matcher(r) === matcher(o))
-    if (matched) return [...acc, matched]
-    else return [...acc, r]
-  }, [] as T[])
 }
 
 /**
@@ -511,9 +512,11 @@ export const diff = <T>(
   identity: (item: T) => string | number | symbol = (t: T) =>
     t as unknown as string | number | symbol
 ): T[] => {
-  if (!root?.length && !other?.length) return []
-  if (root?.length === undefined) return [...other]
-  if (!other?.length) return [...root]
+  if (!Array.isArray(root)) {
+    if (Array.isArray(other)) return [...other]
+    return []
+  }
+  if (!Array.isArray(other)) return [...root]
   const bKeys = other.reduce(
     (acc, item) => ({
       ...acc,
@@ -546,9 +549,5 @@ export const pickBy = <
   collection: T[],
   keys: TKeys[]
 ): Pick<T, TKeys>[] => {
-  const newResult: Pick<T, TKeys>[] = []
-  collection.forEach(item => {
-    newResult.push(pick(item, keys))
-  })
-  return newResult
+  return collection.map(item => pick(item, keys))
 }
