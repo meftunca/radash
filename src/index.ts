@@ -16,6 +16,7 @@ export {
   merge,
   min,
   objectify,
+  pickBy,
   range,
   replace,
   replaceOrAppend,

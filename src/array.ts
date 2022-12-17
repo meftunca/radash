@@ -1,3 +1,4 @@
+import { pick } from './object'
 import { isArray, isFunction } from './typed'
 
 /**
@@ -536,4 +537,18 @@ export function shift<T>(arr: Array<T>, n: number) {
   if (shiftNumber === 0) return arr
 
   return [...arr.slice(-shiftNumber, arr.length), ...arr.slice(0, -shiftNumber)]
+}
+
+export const pickBy = <
+  T extends Record<string, unknown>,
+  TKeys extends keyof T
+>(
+  collection: T[],
+  keys: TKeys[]
+): Pick<T, TKeys>[] => {
+  const newResult: Pick<T, TKeys>[] = []
+  collection.forEach(item => {
+    newResult.push(pick(item, keys))
+  })
+  return newResult
 }
