@@ -185,4 +185,29 @@ describe('string module', () => {
       assert.equal(_.trim('/repos/:owner/:repo/', '/'), 'repos/:owner/:repo')
     })
   })
+  describe('upperCase function', () => {
+    test('handles bad input', () => {
+      assert.equal(_.upperCase(null), '')
+      assert.equal(_.upperCase(undefined), '')
+    })
+    test('returns input string correctly uppercased', () => {
+      assert.equal(_.upperCase('hello'), 'HELLO')
+      assert.equal(_.upperCase('hello world'), 'HELLO WORLD')
+      assert.equal(_.upperCase('hello world!'), 'HELLO WORLD!')
+      assert.equal(_.upperCase('hello world!'), 'HELLO WORLD!')
+    })
+  })
+
+  describe('lowerCase function', () => {
+    test('handles bad input', () => {
+      assert.equal(_.lowerCase(null), '')
+      assert.equal(_.lowerCase(undefined), '')
+    })
+    test('returns input string correctly lowercased', () => {
+      assert.equal(_.lowerCase('HELLO'), 'hello')
+      assert.equal(_.lowerCase('HELLO WORLD'), 'hello world')
+      assert.equal(_.lowerCase('HELLO WORLD!'), 'hello world!')
+      assert.equal(_.lowerCase('HELLO WORLD!'), 'hello world!')
+    })
+  }
 })

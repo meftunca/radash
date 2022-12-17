@@ -136,3 +136,17 @@ export const trim = (
   const regex = new RegExp(`^[${charsToTrim}]+|[${charsToTrim}]+$`, 'g')
   return str.replace(regex, '')
 }
+
+/**
+ * Support upperCase, and lowercase
+ */
+
+export const upperCase = (str?: string | null): string => {
+  if (typeof str !== 'string') return ''
+  return str.toUpperCase()
+}
+
+export const lowerCase = (str?: string | null): string => {
+  if (typeof str !== 'string') return ''
+  return str.toLowerCase()
+}

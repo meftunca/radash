@@ -73,11 +73,13 @@ export {
   camel,
   capitalize,
   dash,
+  lowerCase,
   pascal,
   snake,
   template,
   title,
-  trim
+  trim,
+  upperCase
 } from './string'
 export {
   isArray,
